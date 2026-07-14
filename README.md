@@ -165,4 +165,4 @@ npm --prefix server run start
 
 ## License
 
-No license file is currently included in this repository. Add one (e.g. MIT) if you intend to open-source this project.
+
