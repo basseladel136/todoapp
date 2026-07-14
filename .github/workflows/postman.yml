@@ -1,17 +1,51 @@
 name: Automated API tests using Postman CLI
 
-on: push
+on:
+  push:
 
 jobs:
   automated-api-tests:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Install Postman CLI
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm run install:all
+
+      - name: Build backend
+        run: npm run build:server
+
+      - name: Start backend
+        working-directory: server
         run: |
-          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+          npm start &
+        env:
+          NODE_ENV: test
+          PORT: 5000
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      - name: Wait for backend
+        run: |
+          npx wait-on tcp:5000
+
+      - name: Install Postman CLI
+        run: curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
       - name: Login to Postman CLI
         run: postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
       - name: Run API tests
         run: |
-          postman collection run "45053809-7d606905-3be6-4213-b360-9891c1103eb2" -e "45053809-0ab7b60a-dc1e-449a-b1df-ca66443405bb"
+          postman collection run "45053809-7d606905-3be6-4213-b360-9891c1103eb2" \
+          -e "45053809-0ab7b60a-dc1e-449a-b1df-ca66443405bb"
