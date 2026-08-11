@@ -15,7 +15,10 @@ export const authController = {
     const body = req.validated?.body as RegisterBody;
     const { user, token } = await authService.register(body);
     setAuthCookie(res, token);
-    return sendSuccess(res, 201, { user }, 'Account created successfully');
+    // Also return the token in the body so API clients (Postman, automated
+    // tests) can authenticate without reading the httpOnly cookie. Uses the
+    // same token that was set on the cookie — no duplicate JWT logic.
+    return sendSuccess(res, 201, { user, token }, 'Account created successfully');
   },
 
   async login(req: Request, res: Response) {

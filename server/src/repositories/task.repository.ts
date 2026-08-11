@@ -107,4 +107,11 @@ export const taskRepository = {
     if (error) throw new AppError(error.message, 500);
     return data as TaskRow | null;
   },
+
+  /** Deletes every task. Used by the seed/reset flow (test tooling only). */
+  async deleteAll(): Promise<void> {
+    // Supabase requires a filter on delete; `id is not null` matches all rows.
+    const { error } = await supabase.from(TABLE).delete().not('id', 'is', null);
+    if (error) throw new AppError(error.message, 500);
+  },
 };

@@ -61,4 +61,14 @@ export const userRepository = {
 
     if (error) throw new AppError(error.message, 500);
   },
+
+  /**
+   * Deletes every user. Used by the seed/reset flow (test tooling only).
+   * `tasks.user_id` has ON DELETE CASCADE, so related tasks are removed too.
+   */
+  async deleteAll(): Promise<void> {
+    // Supabase requires a filter on delete; `id is not null` matches all rows.
+    const { error } = await supabase.from(TABLE).delete().not('id', 'is', null);
+    if (error) throw new AppError(error.message, 500);
+  },
 };
