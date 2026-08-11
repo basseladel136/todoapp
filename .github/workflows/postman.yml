@@ -1,0 +1,99 @@
+name: Automated API Tests using Postman CLI
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm run install:all
+
+      - name: Build Backend
+        run: npm run build:server
+
+      - name: Verify GitHub Secrets
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          echo "===== CHECKING SECRETS ====="
+
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "❌ SUPABASE_URL NOT FOUND"
+            exit 1
+          else
+            echo "✅ SUPABASE_URL FOUND"
+          fi
+
+          if [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "❌ SUPABASE_ANON_KEY NOT FOUND"
+            exit 1
+          else
+            echo "✅ SUPABASE_ANON_KEY FOUND"
+          fi
+
+          if [ -z "$JWT_SECRET" ]; then
+            echo "❌ JWT_SECRET NOT FOUND"
+            exit 1
+          else
+            echo "✅ JWT_SECRET FOUND"
+          fi
+
+      - name: Start Backend
+        working-directory: server
+        env:
+          NODE_ENV: test
+          PORT: 5000
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+        run: |
+          npm start > server.log 2>&1 &
+          sleep 15
+
+          echo ""
+          echo "========== SERVER LOG =========="
+          cat server.log
+
+          echo ""
+          echo "========== NODE PROCESS =========="
+          ps -ef | grep node || true
+
+          echo ""
+          echo "========== PORT 5000 =========="
+          ss -tulpn | grep 5000 || true
+
+      - name: Check Backend
+        run: |
+          curl -v http://localhost:5000 || true
+
+      - name: Install Postman CLI
+        run: |
+          curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
+
+      - name: Login to Postman CLI
+        run: |
+          postman login --with-api-key ${{ secrets.POSTMAN_API_KEY }}
+
+      - name: Run API Tests
+        run: |
+          postman collection run "45053809-7d606905-3be6-4213-b360-9891c1103eb2" \
+            -e "45053809-0ab7b60a-dc1e-449a-b1df-ca66443405bb"
