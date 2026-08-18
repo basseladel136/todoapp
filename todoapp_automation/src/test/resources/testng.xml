@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE suite SYSTEM
+        "https://testng.org/testng-1.0.dtd">
+
+<suite name="TodoApp Automation Suite">
+
+    <listeners>
+
+        <listener
+                class-name="com.todoapp.tests.listeners.TestListener"/>
+
+    </listeners>
+
+
+    <test name="Authentication Tests">
+
+        <classes>
+
+            <class name="com.todoapp.tests.RegisterTest"/>
+
+            <class name="com.todoapp.tests.LoginTest"/>
+
+        </classes>
+
+    </test>
+
+
+    <test name="Todo Tests">
+
+        <classes>
+
+            <class name="com.todoapp.tests.TodoTest"/>
+
+        </classes>
+
+    </test>
+
+</suite>
