@@ -14,12 +14,14 @@ A modernized full-stack ToDo application — **React 19 + Vite + TypeScript** on
 ## Tech Stack
 
 **Client**
+
 - React 19, TypeScript, Vite
 - React Router, TanStack Query, Zustand
 - React Hook Form + Zod
 - Tailwind CSS, Radix UI, lucide-react
 
 **Server**
+
 - Express + TypeScript (ESM), tsx for dev
 - Supabase JS client (service-role key) against PostgreSQL
 - JWT auth (jsonwebtoken), bcryptjs for password hashing
@@ -65,14 +67,14 @@ todoapp/
 
 ### 1. Clone the repository
 
-```bash
+```
 git clone https://github.com/basseladel136/todoapp.git
 cd todoapp
 ```
 
 ### 2. Install dependencies
 
-```bash
+```
 npm run install:all
 ```
 
@@ -81,14 +83,13 @@ This installs dependencies for both `server` and `client`.
 ### 3. Set up the database
 
 Open the Supabase SQL Editor for your project and run the contents of `server/db/schema.sql`. This creates the `users` and `tasks` tables, indexes, and row-level security policies.
-
 > **Note:** This app does not use Supabase Auth. It manages its own `users` table with bcrypt-hashed passwords and issues its own JWTs. The backend connects with the Supabase **service role** key, which bypasses RLS; per-user access control is enforced in the API layer.
 
 ### 4. Configure environment variables
 
 **Server** — copy `server/.env.example` to `server/.env` and fill in your values:
 
-```env
+```
 NODE_ENV=development
 PORT=5000
 CLIENT_ORIGIN=http://localhost:5173
@@ -103,7 +104,7 @@ COOKIE_NAME=todo_token
 
 **Client** — copy `client/.env.example` to `client/.env`:
 
-```env
+```
 VITE_API_URL=/api/v1
 VITE_DEV_PROXY_TARGET=http://localhost:5000
 ```
@@ -112,7 +113,7 @@ VITE_DEV_PROXY_TARGET=http://localhost:5000
 
 In two terminals (or use the root scripts):
 
-```bash
+```
 npm run dev:server   # starts the API on PORT (default 5000)
 npm run dev:client   # starts the Vite dev server on http://localhost:5173
 ```
@@ -121,47 +122,64 @@ The client dev server proxies `/api` requests to the backend, so `VITE_DEV_PROXY
 
 ## Available Scripts (root)
 
-| Script | Description |
-| --- | --- |
+| Script                | Description                                         |
+| --------------------- | --------------------------------------------------- |
 | `npm run install:all` | Install dependencies for both `server` and `client` |
-| `npm run dev:server` | Run the backend in watch mode |
-| `npm run dev:client` | Run the frontend dev server |
-| `npm run build` | Build both server and client for production |
-| `npm run typecheck` | Type-check both server and client |
-| `npm run lint` | Lint both server and client |
+| `npm run dev:server`  | Run the backend in watch mode                       |
+| `npm run dev:client`  | Run the frontend dev server                         |
+| `npm run build`       | Build both server and client for production         |
+| `npm run typecheck`   | Type-check both server and client                   |
+| `npm run lint`        | Lint both server and client                         |
 
 ## API Overview
 
 All routes are prefixed with `/api/v1`.
 
-| Method | Route | Description | Auth |
-| --- | --- | --- | --- |
-| GET | `/health` | Health check | No |
-| POST | `/auth/register` | Register a new user | No |
-| POST | `/auth/login` | Log in | No |
-| POST | `/auth/logout` | Log out | No |
-| GET | `/auth/me` | Get current user | Yes |
-| POST | `/auth/refresh` | Refresh JWT | Yes |
-| PATCH | `/auth/change-password` | Change password | Yes |
-| GET | `/todos` | List current user's todos | Yes |
-| POST | `/todos` | Create a todo | Yes |
-| GET | `/todos/:id` | Get a single todo | Yes |
-| PUT/PATCH | `/todos/:id` | Update a todo | Yes |
-| DELETE | `/todos/:id` | Delete a todo | Yes |
+| Method    | Route                   | Description               | Auth |
+| --------- | ----------------------- | ------------------------- | ---- |
+| GET       | `/health`               | Health check              | No   |
+| POST      | `/auth/register`        | Register a new user       | No   |
+| POST      | `/auth/login`           | Log in                    | No   |
+| POST      | `/auth/logout`          | Log out                   | No   |
+| GET       | `/auth/me`              | Get current user          | Yes  |
+| POST      | `/auth/refresh`         | Refresh JWT               | Yes  |
+| PATCH     | `/auth/change-password` | Change password           | Yes  |
+| GET       | `/todos`                | List current user's todos | Yes  |
+| POST      | `/todos`                | Create a todo             | Yes  |
+| GET       | `/todos/:id`            | Get a single todo         | Yes  |
+| PUT/PATCH | `/todos/:id`            | Update a todo             | Yes  |
+| DELETE    | `/todos/:id`            | Delete a todo             | Yes  |
 
 Authentication is handled via an httpOnly JWT cookie set on login/register; the frontend sends credentials automatically via Axios/`fetch` with `credentials: "include"`.
 
+## Testing
+
+UI and API test automation for this app lives in a separate sibling repository, using **Selenium WebDriver + TestNG + Cucumber** for UI/E2E flows and **Postman/Newman** for API testing.
+
+- UI tests: Selenium WebDriver, TestNG, Cucumber (BDD-style step definitions)
+- API tests: Postman collections run via Newman, covering the `/api/v1` endpoints listed above
+- Kept as a standalone repo rather than a subfolder, so the test suite can evolve and run independently of app releases
+
 ## Building for Production
 
-```bash
+```
 npm run build
 ```
 
 This builds the server (`server/dist`) and the client (`client/dist`). Serve the built client as static files and run the server with:
 
-```bash
+```
 npm --prefix server run start
 ```
 
+## Contributing
 
+Contributions are welcome. To propose a change:
 
+1. Fork the repository and create a feature branch from `main`
+2. Make your changes, following the existing code style (TypeScript, ESLint/Prettier config in each package)
+3. Run `npm run typecheck` and `npm run lint` before committing
+4. Open a pull request with a clear description of the change and, if relevant, screenshots or test coverage notes
+5. Keep PRs focused — one feature or fix per PR is easier to review
+
+For bug reports or feature requests, please open an issue describing the problem, expected behavior, and steps to reproduce.
